@@ -9,6 +9,11 @@ import {
   Toast,
   Cell,
   NavBar,
+  Tabbar,
+  TabbarItem,
+  List,
+  Tab,
+  Tabs,
   Field } from 'vant'
 
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
@@ -30,7 +35,7 @@ Vue.component('ValidationObserver', ValidationObserver)
 // extend('规则名称'，配置对象)
 extend('phone', {
   validate: function (value) {
-    return /^(1[3-9])\\d{9}$/.test(value)
+    return /^1\d{10}$/.test(value)
   },
   // 错误提示信息
   message: '请输入有效的手机号'
@@ -43,6 +48,12 @@ Vue
   .use(Button)
   .use(NavBar)
   .use(Field)
+  .use(Tabbar)
+  .use(TabbarItem)
+  .use(List)
+  .use(Tab)
+  .use(Tabs)
+
 Vue.config.productionTip = false
 
 new Vue({
