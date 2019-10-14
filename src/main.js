@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import './styles/index.less'
+import './utils/date' // 加载一下，让这个代码执行
 import {
   Button,
   CellGroup,
@@ -14,7 +15,12 @@ import {
   List,
   Tab,
   Tabs,
-  Field } from 'vant'
+  PullRefresh,
+  Field,
+  Grid,
+  Image,
+  GridItem,
+  Lazyload } from 'vant'
 
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
 import zhCN from 'vee-validate/dist/locale/zh_CN' // 加载验证插件的语言包
@@ -53,6 +59,11 @@ Vue
   .use(List)
   .use(Tab)
   .use(Tabs)
+  .use(PullRefresh)
+  .use(Grid)
+  .use(GridItem)
+  .use(Image)
+  .use(Lazyload)
 
 Vue.config.productionTip = false
 
