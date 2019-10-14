@@ -1,13 +1,11 @@
 <template>
   <div class="home">
-    <!-- 导航栏 -->
-    <van-nav-bar
-      title="首页"
-    />
+    <!-- 导航栏 可视区域的固定定位-->
+    <van-nav-bar title="首页" fixed/>
     <!-- /导航栏 -->
 
     <!-- 频道列表 -->
-    <van-tabs v-model="active">
+    <van-tabs v-model="active" animated swipeable>
       <van-tab
       :title="channel.name"
       v-for="channel in channels"
@@ -65,12 +63,47 @@
       </van-tab>
     </van-tabs>
     <!-- /频道列表 -->
+
+    <!-- 频道管理 -->
+    <van-popup
+      v-model="isChannelEditShow"
+      round
+      closeable
+      close-icon-position="top-left"
+      position="bottom"
+      :style="{ height: '95%' }"
+    >
+      <div class="channel-container">
+        <van-cell title="我的频道" :border="false">
+          <van-button type="danger" size="mini">编辑</van-button>
+        </van-cell>
+        <van-grid :gutter="10">
+          <van-grid-item
+            v-for="(channel,index) in channels"
+            :key="index"
+            :text="channel.name"
+          />
+        </van-grid>
+
+        <van-cell title="推荐频道" :border="false" />
+        <van-grid :gutter="10">
+          <van-grid-item
+          @click="onAddChannel(channel)"
+            v-for="(channel, index) in recommondChannels"
+            :key="index"
+            :text="channel.name"
+          />
+        </van-grid>
+      </div>
+    </van-popup>
+    <!-- /频道管理 -->
   </div>
 </template>
 
 <script>
+import { getItem, setItem } from '@/utils/storage'
 import { getArticles } from '@/api/article'
-import { getDefaultChannels } from '@/api/channel' // 推荐的频道列表
+import { getDefaultChannels, getAllChannels } from '@/api/channel' // 推荐的频道列表
 export default {
   name: 'HomeIndex',
   data () {
@@ -79,10 +112,30 @@ export default {
       list: [],
       loading: false,
       finished: false,
-      channels: [] // 频道列表
+      channels: [], // 频道列表
+      allChannels: [], // 存储所有的频道列表
+      isChannelEditShow: true // 这里我们先设置为 true 就能看到弹窗的页面了
+    }
+  },
+  watch: {
+    // 监听channels（我的频道的变化），不论是添加进来，还是删除，都会触发
+    channels (newVal) {
+      // 只要数据变化，就会将变化的新数据存储
+      setItem('channels', newVal)
     }
   },
   methods: {
+    // 点击添加频道至我的频道
+    onAddChannel (channel) {
+      this.channels.push(channel)
+    },
+    // =================================================
+    // 获取所有频道列表
+    async loadAllChannels () {
+      const { data } = await getAllChannels()
+      this.allChannels = data.data.channels
+    },
+    // ============================================
     async onRefresh () {
       // 获取当前的频道对象
       const activeChannel = this.channels[this.active]
@@ -157,10 +210,21 @@ export default {
     //     }
     //   }, 2000)
     // },
+    // 获取我的频道列表
     async loadChannels () {
-      const { data } = await getDefaultChannels()
-
-      const channels = data.data.channels
+      let channels = []
+      // 读取本地数据
+      const localChannels = getItem('channels')
+      // 判断
+      if (localChannels) {
+        // 如果有本地存储的我的频道列表，就使用本地
+        channels = localChannels
+      } else {
+        // 如果没有本地存储的频道列表，则请求获取后台推荐的频道列表
+        const { data } = await getDefaultChannels()
+        channels = data.data.channels
+      }
+      // ----
       //   遍历频道
       channels.forEach(channel => {
         channel.articles = [] // 储存频道的文章列表
@@ -169,18 +233,59 @@ export default {
         channel.timestamp = null // 存储频道下一页的时间戳
         channel.isPullDownLoading = false // 存储频道的下拉舒心loading的状态
       })
+      // 最后把数据更新到组建中
       this.channels = channels
-      console.log(data)
+    }
+  },
+  computed: {
+    // 获取推荐列表
+    recommondChannels () {
+      const arr = []
+      // 遍历所有频道
+      this.allChannels.forEach(channel => {
+        // 判断channel是否存在我的频道中
+        // 如果不存在，说明就剩余的就是推荐的频道
+        // 数组的 find 方法
+        // 每遍历一次就会判断item.id === channel.id条件
+        // 如果是true，则停止遍历，返回满足该条件的元素，在去判断下一个元素
+        // 如果为false，则继续遍历
+        // 如果没有符合条件的数据，会返回undefind
+        const ret = this.channels.find(item => item.id === channel.id)
+        // 判断有不符合条件的数据，push进定义好的空数组中
+        if (!ret) {
+          arr.push(channel)
+        }
+      })
+      // 遍历完成，将所有不符合条件得数据添加进arr中后，在江湾城的数组return
+      return arr
     }
   },
   created () {
     this.loadChannels()
+    this.loadAllChannels() //  加载所有频道列表
   }
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="less" >
   .home{
+    .channel-container {
+      padding-top: 30px;
+    }
+    .van-tabs {
+      .van-tabs__wrap {
+        position: fixed;
+        top: 46px;
+        left: 0;
+        right: 16px;
+        z-index: 2;
+      }
+      .van-tabs__content{
+        margin-top: 90px;
+        margin-bottom: 50px;
+      }
+    }
+
     .article-info {
       display: flex;  // 弹性布局
       align-items: center;  //居中对齐

@@ -20,7 +20,8 @@ import {
   Grid,
   Image,
   GridItem,
-  Lazyload } from 'vant'
+  Lazyload,
+  Popup } from 'vant'
 
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
 import zhCN from 'vee-validate/dist/locale/zh_CN' // 加载验证插件的语言包
@@ -64,6 +65,7 @@ Vue
   .use(GridItem)
   .use(Image)
   .use(Lazyload)
+  .use(Popup)
 
 Vue.config.productionTip = false
 
