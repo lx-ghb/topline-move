@@ -21,7 +21,9 @@ import {
   Image,
   GridItem,
   Lazyload,
-  Popup } from 'vant'
+  Popup,
+  Search,
+  Icon } from 'vant'
 
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
 import zhCN from 'vee-validate/dist/locale/zh_CN' // 加载验证插件的语言包
@@ -66,6 +68,8 @@ Vue
   .use(Image)
   .use(Lazyload)
   .use(Popup)
+  .use(Icon)
+  .use(Search)
 
 Vue.config.productionTip = false
 

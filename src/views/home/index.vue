@@ -1,11 +1,21 @@
 <template>
   <div class="home">
     <!-- 导航栏 可视区域的固定定位-->
-    <van-nav-bar title="首页" fixed/>
+    <van-nav-bar fixed>
+      <van-button
+      slot="title"
+      class="search-btn"
+      round
+      type="info"
+      size="small"
+      @click="$router.push('/search')"
+      >搜索</van-button>
+    </van-nav-bar>
     <!-- /导航栏 -->
 
     <!-- 频道列表 -->
-    <van-tabs v-model="active" animated swipeable>
+    <van-tabs v-model="active"  animated swipeable>
+      <van-icon @click="isChannelEditShow=true" class="wap-nav" name="wap-nav" slot="nav-right" size="20"></van-icon>
       <van-tab
       :title="channel.name"
       v-for="channel in channels"
@@ -75,14 +85,24 @@
     >
       <div class="channel-container">
         <van-cell title="我的频道" :border="false">
-          <van-button type="danger" size="mini">编辑</van-button>
+          <van-button
+          @click="isEditShow = !isEditShow"
+          type="danger"
+          size="mini"
+          >{{isEditShow ? '完成' : '编辑'}}
+          </van-button>
         </van-cell>
         <van-grid :gutter="10">
+          <!-- 单独提出推荐，不让推荐有删除功能，只进行切换 -->
+          <van-grid-item text="推荐" @click= switchChannel(index)></van-grid-item>
           <van-grid-item
-            v-for="(channel,index) in channels"
+            @click="onMyChannelClick(index)"
+            v-for="(channel,index) in channels.slice(1)"
             :key="index"
             :text="channel.name"
-          />
+          >
+            <van-icon v-show="isEditShow" class="close-icon" slot="icon" name="close" />
+          </van-grid-item>
         </van-grid>
 
         <van-cell title="推荐频道" :border="false" />
@@ -114,7 +134,8 @@ export default {
       finished: false,
       channels: [], // 频道列表
       allChannels: [], // 存储所有的频道列表
-      isChannelEditShow: true // 这里我们先设置为 true 就能看到弹窗的页面了
+      isChannelEditShow: false, // 这里我们先设置为 true 就能看到弹窗的页面了
+      isEditShow: false
     }
   },
   watch: {
@@ -125,17 +146,48 @@ export default {
     }
   },
   methods: {
+    // 弾层我的频道中的删除频道及切换频道显示
+    onMyChannelClick (index) {
+      if (this.isEditShow) {
+        // 是编辑状态，删除频道
+        this.channels.splice(index, 1)
+      } else {
+        this.switchChannel(index + 1)
+        // // 非编辑状态，则切换到频道显示
+        // this.active = index + 1
+        // // 关闭弾层
+        // this.isChannelEditShow = false
+      }
+    },
+    // 推荐的切换频道（推荐频道不让其点击删除）
+    switchChannel (index) {
+      // 非编辑状态，则切换到频道显示
+      this.active = index
+      // 关闭弾层
+      this.isChannelEditShow = false
+    },
+    // ==========================================================
     // 点击添加频道至我的频道
     onAddChannel (channel) {
       this.channels.push(channel)
+      // this.onLoad()
     },
     // =================================================
     // 获取所有频道列表
     async loadAllChannels () {
       const { data } = await getAllChannels()
+      const channels = data.data.channels
+      channels.forEach(channel => {
+        channel.articles = [] // 储存频道的文章列表
+        channel.loading = false // 频道的上拉加载更多的 loading 状态
+        channel.finished = false // 存储频道的加载结束状态
+        channel.timestamp = null // 存储频道下一页的时间戳
+        channel.isPullDownLoading = false // 存储频道的下拉舒心loading的状态
+      })
       this.allChannels = data.data.channels
     },
     // ============================================
+    // 文章列表的下拉刷新
     async onRefresh () {
       // 获取当前的频道对象
       const activeChannel = this.channels[this.active]
@@ -155,7 +207,7 @@ export default {
     },
 
     // =============================================
-
+    // 上滑加载更多数据
     async onLoad () {
       const activeChannel = this.channels[this.active]
 
@@ -238,14 +290,14 @@ export default {
     }
   },
   computed: {
-    // 获取推荐列表
+    // 获取计算推荐列表
     recommondChannels () {
       const arr = []
       // 遍历所有频道
       this.allChannels.forEach(channel => {
         // 判断channel是否存在我的频道中
         // 如果不存在，说明就剩余的就是推荐的频道
-        // 数组的 find 方法
+        // 数组的 find 方法（查找满足该条件的数据）
         // 每遍历一次就会判断item.id === channel.id条件
         // 如果是true，则停止遍历，返回满足该条件的元素，在去判断下一个元素
         // 如果为false，则继续遍历
@@ -269,8 +321,25 @@ export default {
 
 <style lang="less" >
   .home{
+    .search-btn{
+      width: 100%;
+      background: #5babfb;
+    }
+    .wap-nav {
+      position: sticky;
+      right: 0;
+      display: flex;
+      align-items: center;
+      background-color: #fff;
+      opacity: 0.8;
+    }
     .channel-container {
       padding-top: 30px;
+      .close-icon {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+      }
     }
     .van-tabs {
       .van-tabs__wrap {
