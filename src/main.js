@@ -23,6 +23,7 @@ import {
   Lazyload,
   Popup,
   Search,
+  Loading,
   Icon } from 'vant'
 
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
@@ -70,6 +71,7 @@ Vue
   .use(Popup)
   .use(Icon)
   .use(Search)
+  .use(Loading)
 
 Vue.config.productionTip = false
 

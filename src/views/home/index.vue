@@ -41,10 +41,12 @@
           <!--列表的内容  -->
           <!-- article.art_id ,超出了JS的安全整数范围，已经
           被json-bigint 转成了对象，key只能绑定字符串-->
+          <!-- 跳转文章详情页，通过携带的id来向接口发送请求，获取文章的纤细内容数据 -->
             <van-cell
               v-for="article in channel.articles"
               :key="article.art_id.toString()"
               :title="article.title"
+              @click="$router.push('/article/' + article.art_id)"
             >
             <!-- 显详细内容 -->
               <div slot="label">

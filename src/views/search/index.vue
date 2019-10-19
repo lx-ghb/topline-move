@@ -29,17 +29,55 @@
         </van-cell>
       </van-cell-group>
       <!-- /联想建议 -->
+
+      <!-- 搜索历史记录 -->
+      <van-cell-group>
+        <van-cell title="历史记录">
+          <template v-if="isDeleteShow">
+            <!-- 点击后删除全部的历史记录 -->
+          <span @click="searchHistories = []">全部删除</span>&nbsp;&nbsp;
+          <span @click="isDeleteShow = false">完成</span>
+          </template>
+          <van-icon v-else @click="isDeleteShow = true" size="20px" name="delete"/>
+        </van-cell>
+        <van-cell
+
+        v-for="(item,index) in searchHistories"
+        :key="index"
+        :title="item"
+        @click="onSearch(item)"
+        >
+        <!-- stop阻止冒泡，当他的父级也有点击事件，子级页有点击事件，就会冒泡，父级会影响到子级 -->
+          <van-icon
+          size="20px"
+          v-show="isDeleteShow"
+          @click.stop="searchHistories.splice(index, 1)"
+          name="close"/>
+        </van-cell>
+      </van-cell-group>
+      <!-- /搜索历史记录 -->
   </div>
 </template>
 
 <script>
+import { getItem, setItem } from '@/utils/storage'
 import { getSearchSuggestions } from '@/api/search'
+import { debounce } from 'lodash'
+
 export default {
   name: 'SearchIndex',
   data () {
     return {
+      isDeleteShow: false,
       searchText: '',
-      SearchSuggestions: [] // 联想建议列表
+      SearchSuggestions: [], // 联想建议列表
+      searchHistories: getItem('search-histories') || [] // 搜索历史记录
+    }
+  },
+  watch: {
+    // searchHistories数组内部发生改变，将存储改变后新的数据
+    searchHistories (newVal) {
+      setItem('search-histories', newVal)
     }
   },
   methods: {
@@ -47,6 +85,17 @@ export default {
      * 搜索框：回车或点击搜索，触发该事件
      */
     onSearch (str) {
+      // 存储搜索的历史记录
+      // 如果搜索的历史记录中已存在，则直接删除
+      // 如果要检索的字符串值没有出现，则该方法返回 -1。
+      const index = this.searchHistories.indexOf(str)
+      if (index !== -1) {
+        this.searchHistories.splice(index, 1) // 删除
+      }
+      //  把最新的记录数据存储到数组最前面
+      this.searchHistories.unshift(str)
+      //  持久化储存
+      setItem('search-histories', this.searchHistories)
       // 携带搜索内容，跳转到  搜索结果
       this.$router.push(`/search/${str}`)
     },
@@ -54,7 +103,9 @@ export default {
     /**
      * 输入框内容变化时触发
     */
-    async onSearchInput () {
+    // async onSearchInput () {
+    onSearchInput: debounce(async function () {
+      //  防抖优化
       // trim()去掉文本两边的空格
       const searchText = this.searchText.trim()
       // 判断搜索宽管是否有内容，若是没有，直接return出去，代码不在执行
@@ -75,7 +126,7 @@ export default {
       // })
       // 在赋值给searchSuggestions
       this.SearchSuggestions = searchSuggestions
-    },
+    }, 300),
     /**
      * 遍历联想建议，渲染数据到页面，会触发此方法，
      */

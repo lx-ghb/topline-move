@@ -10,3 +10,14 @@ export function getSearchSuggestions (params) {
     params
   })
 }
+
+/**
+ * 获取请求搜索结果数据
+ */
+export function getSearch (params) {
+  return request({
+    method: 'GET',
+    url: '/app/v1_0/search',
+    params
+  })
+}
