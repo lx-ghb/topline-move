@@ -8,6 +8,7 @@ import SearchResult from '@/views/search-result'
 import Article from '@/views/article'
 import My from '@/views/my'
 import User from '@/views/user'
+import Chat from '@/views/chat'
 
 Vue.use(VueRouter)
 
@@ -38,6 +39,11 @@ const router = new VueRouter({
       name: 'user',
       path: '/user',
       component: User
+    },
+    {
+      name: 'chat',
+      path: '/chat',
+      component: Chat
     },
     {
       path: '/',

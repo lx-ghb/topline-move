@@ -58,9 +58,29 @@ export function getSelf (userId) {
 /**
  * 获取用户个人资料
  */
-export const getProfile = () => {
+export function getProfile (userId) {
   return request({
     method: 'GET',
     url: '/app/v1_0/user/profile'
+  })
+}
+/**
+ * 更新用户头像
+ */
+export function updateUserPhoto (data) {
+  return request({
+    method: 'PATCH',
+    url: '/app/v1_0/user/photo',
+    data
+  })
+}
+/**
+ * 更新用户基本信息
+ */
+export function updateUserProfile (data) {
+  return request({
+    method: 'PATCH',
+    url: '/app/v1_0/user/profile',
+    data
   })
 }

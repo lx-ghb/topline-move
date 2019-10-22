@@ -24,6 +24,9 @@ import {
   Popup,
   Search,
   Loading,
+  Dialog,
+  ActionSheet,
+  DatetimePicker,
   Icon } from 'vant'
 
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
@@ -72,6 +75,9 @@ Vue
   .use(Icon)
   .use(Search)
   .use(Loading)
+  .use(Dialog)
+  .use(ActionSheet)
+  .use(DatetimePicker)
 
 Vue.config.productionTip = false
 
